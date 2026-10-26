@@ -12,8 +12,6 @@
             --accent-hover: #0ea5e9;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --danger: #ef4444;
-            --success: #10b981;
             --border-radius: 12px;
         }
 
@@ -50,10 +48,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .logo span {
-            color: var(--text-main);
         }
 
         .main-container {
@@ -144,7 +138,7 @@
             transition: border-color 0.2s;
         }
 
-        .file-label:hover {
+        .file-label:hover, .file-label.dragover {
             border-color: var(--accent);
             color: var(--accent);
         }
@@ -353,10 +347,10 @@
         <aside class="sidebar">
             <div class="control-group">
                 <h3>1. Fonte da Imagem</h3>
-                <label class="file-label" for="imageInput">
+                <label class="file-label" id="dropZone" for="imageInput">
                     <div>
                         <strong>📁 Carregar Foto</strong>
-                        <small>Arraste ou clique para selecionar</small>
+                        <small>Arraste ou clique para selecionar (PNG/JPG)</small>
                     </div>
                 </label>
                 <input type="file" id="imageInput" accept="image/*">
@@ -448,24 +442,4 @@
         const loadingStatus = document.getElementById('loadingStatus');
         const progressFill = document.getElementById('progressFill');
         const statusLeft = document.getElementById('statusLeft');
-        const statusRight = document.getElementById('statusRight');
-        const fileNameDisplay = document.getElementById('fileName');
-
-        let originalImage = null;
-        let zoomLevel = 1;
-        let isFlipped = false;
-        let currentStyle = 'realistic';
-        let isProcessing = false;
-
-        // Configurações iniciais
-        const settings = {
-            nudeLevel: 80,
-            skinTone: 50,
-            smoothing: 2,
-            lighting: 1
-        };
-
-        // Atualizar configurações via sliders
-        document.getElementById('nudeLevel').addEventListener('input', (e) => {
-            settings.nudeLevel = parseInt(e.target.value);
-           
+        const statusRight = document
