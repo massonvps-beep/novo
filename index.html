@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NudeGen AI - Deepfake Studio</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background: var(--panel-bg);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo span {
+            color: var(--text-main);
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar Controls */
+        .sidebar {
+            width: 320px;
+            background: var(--panel-bg);
+            padding: 1rem;
+            overflow-y: auto;
+            border-right: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .control-group {
+            background: #0f172a;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            border: 1px solid #334155;
+        }
+
+        .control-group h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: var(--text-main);
+            margin-top: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            display: block;
+            text-align: center;
+            padding: 20px;
+            border: 2px dashed #475569;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: border-color 0.2s;
+        }
+
+        .file-label:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .slider-container {
+            margin-bottom: 12px;
+        }
+
+        .slider-container label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+
+        .style-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .style-btn {
+            padding: 8px;
+            font-size: 0.8rem;
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: var(--text-main);
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .style-btn.active {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+        }
+
+        /* Canvas Area */
+        .canvas-area {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            padding: 2rem;
+            overflow: auto;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            max-width: 100%;
+            max-height: 100%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            background: #000;
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+
+        .overlay-ui {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #475569;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .icon-btn:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: var(--accent);
+        }
+
+        .status-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 10px 20px;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #334155;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #334155;
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            z-index: 20;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.85);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .loading-subtext {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 40vh;
+                border-right: none;
+                border-bottom: 1px solid #334155;
+            }
+            .canvas-area {
+                min-height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            🧬 NudeGen <span>AI Studio</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-secondary" style="width: auto; padding: 8px 16px;" onclick="exportImage()">
+                ⬇️ Exportar PNG
+            </button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Sidebar Controls -->
+        <aside class="sidebar">
+            <div class="control-group">
+                <h3>1. Fonte da Imagem</h3>
+                <label class="file-label" for="imageInput">
+                    <div>
+                        <strong>📁 Carregar Foto</strong>
+                        <small>Arraste ou clique para selecionar</small>
+                    </div>
+                </label>
+                <input type="file" id="imageInput" accept="image/*">
+                <p id="fileName" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; text-align: center;"></p>
+            </div>
+
+            <div class="control-group">
+                <h3>2. Estilo de Renderização</h3>
+                <div class="style-grid">
+                    <button class="style-btn active" data-style="realistic">Realista</button>
+                    <button class="style-btn" data-style="cinematic">Cinemático</button>
+                    <button class="style-btn" data-style="oil">Pintura a Óleo</button>
+                    <button class="style-btn" data-style="noir">Noir</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>3. Parâmetros Avançados</h3>
+                <div class="slider-container">
+                    <label>Nível de "Nude" (Intensidade)</label>
+                    <input type="range" id="nudeLevel" min="0" max="100" value="80">
+                </div>
+                <div class="slider-container">
+                    <label>Tom de Pele (Hue Shift)</label>
+                    <input type="range" id="skinTone" min="0" max="100" value="50">
+                </div>
+                <div class="slider-container">
+                    <label>Suavização (Blur)</label>
+                    <input type="range" id="smoothing" min="0" max="10" value="2" step="0.5">
+                </div>
+                <div class="slider-container">
+                    <label>Iluminação</label>
+                    <input type="range" id="lighting" min="0.5" max="2" value="1" step="0.1">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>4. Ações</h3>
+                <button class="btn btn-primary" id="generateBtn" disabled>
+                    ⚡ Gerar Imagem
+                </button>
+                <button class="btn btn-secondary" id="resetBtn" disabled>
+                    🔄 Resetar
+                </button>
+            </div>
+
+            <div class="control-group" style="background: rgba(56, 189, 248, 0.1); border-color: var(--accent);">
+                <h3 style="color: var(--accent);">💡 Dica de Prompt</h3>
+                <p style="font-size: 0.8rem; line-height: 1.4; color: var(--text-muted);">
+                    Para melhores resultados, use fotos de alta resolução com boa iluminação. O motor de IA simula a remoção de roupas analisando os contornos e tons de pele da imagem original.
+                </p>
+            </div>
+        </aside>
+
+        <!-- Canvas Area -->
+        <main class="canvas-area">
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <canvas id="mainCanvas"></canvas>
+                <div class="overlay-ui">
+                    <button class="icon-btn" onclick="zoomIn()" title="Zoom In">🔍+</button>
+                    <button class="icon-btn" onclick="zoomOut()" title="Zoom Out">🔍-</button>
+                    <button class="icon-btn" onclick="flipCanvas()" title="Espelhar">↔️</button>
+                </div>
+            </div>
+
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <div class="loading-text">Processando Imagem...</div>
+                <div class="loading-subtext" id="loadingStatus">Analisando contornos e texturas de pele</div>
+            </div>
+
+            <div class="status-bar">
+                <span id="statusLeft">Aguardando imagem...</span>
+                <span id="statusRight">Zoom: 100%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const imageInput = document.getElementById('imageInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const progressFill = document.getElementById('progressFill');
+        const statusLeft = document.getElementById('statusLeft');
+        const statusRight = document.getElementById('statusRight');
+        const fileNameDisplay = document.getElementById('fileName');
+
+        let originalImage = null;
+        let zoomLevel = 1;
+        let isFlipped = false;
+        let currentStyle = 'realistic';
+        let isProcessing = false;
+
+        // Configurações iniciais
+        const settings = {
+            nudeLevel: 80,
+            skinTone: 50,
+            smoothing: 2,
+            lighting: 1
+        };
+
+        // Atualizar configurações via sliders
+        document.getElementById('nudeLevel').addEventListener('input', (e) => {
+            settings.nudeLevel = parseInt(e.target.value);
+           
